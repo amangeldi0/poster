@@ -1,0 +1,14 @@
+env: "dev"
+
+http_server:
+  host: "localhost"
+  port: "8080"
+  timeout: "4s"
+  idle_timeout: "60s"
+
+database:
+  port: "5432"
+  host: "localhost"
+  name: "poster"
+  user: "mac"
+  password: ""
