@@ -16,5 +16,5 @@ database:
 smtp:
   port: "587"
   host: "smtp.gmail.com"
-  sender: ""
-  
+  sender: "email"
+  password: "password"

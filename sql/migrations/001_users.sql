@@ -2,13 +2,13 @@
 
 CREATE TABLE users (
     id uuid primary key ,
-    nickname VARCHAR(100) NOT NULL unique ,
+    username VARCHAR(100) NOT NULL unique ,
     email VARCHAR(255) UNIQUE NOT NULL,
     is_verified boolean default false,
-    verify_code text,
+    verify_code text null ,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    update_at TIMESTAMP DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 CREATE TABLE likes (
