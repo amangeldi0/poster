@@ -12,3 +12,9 @@ database:
   name: "poster"
   user: "mac"
   password: ""
+
+smtp:
+  port: "587"
+  host: "smtp.gmail.com"
+  sender: ""
+  
