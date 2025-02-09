@@ -3,7 +3,9 @@ package config
 import (
 	"fmt"
 	"github.com/ilyakaznacheev/cleanenv"
+	"gopkg.in/gomail.v2"
 	"os"
+	"strconv"
 	"time"
 )
 
@@ -11,6 +13,7 @@ type Config struct {
 	Env        string     `yaml:"env" env:"ENV" default:"local"`
 	HTTPServer HTTPServer `yaml:"http_server" env:"HTTP_SERVER"`
 	Database   Database   `yaml:"database" env:"DATABASE"`
+	Mailer     Mailer     `yaml:"mailer" env:"MAILER"`
 }
 
 type Database struct {
@@ -28,6 +31,15 @@ type HTTPServer struct {
 	Port        string        `yaml:"port" env:"HTTP_PORT" default:"8080"`
 	Timeout     time.Duration `yaml:"timeout" env:"HTTP_TIMEOUT" default:"5"`
 	IdleTimeout time.Duration `yaml:"idle_timeout" env:"HTTP_IDLE_TIMEOUT" default:"5"`
+}
+
+type Mailer struct {
+	Smtp     string         `yaml:"smtp" env:"MAILER_SMTP" default:"localhost"`
+	Host     string         `yaml:"host" env:"MAILER_HOST" default:"localhost"`
+	Port     string         `yaml:"port" env:"MAILER_PORT" default:"25"`
+	Email    string         `yaml:"sender" env:"MAILER_EMAIL" default:"test@test.com"`
+	Password string         `yaml:"password" env:"MAILER_PASSWORD" default:"test"`
+	Dialer   *gomail.Dialer `yaml:"dialer" env:"MAILER_DIALER"`
 }
 
 const PathKey = "CONFIG_PATH"
@@ -59,6 +71,16 @@ func New() (*Config, error) {
 		"postgres://%s:@%s:%s/%s?sslmode=disable",
 		cfg.Database.User, cfg.Database.Host, cfg.Database.Port, cfg.Database.Name,
 	)
+
+	mailerPort, err := strconv.Atoi(cfg.Mailer.Port)
+
+	if err != nil {
+		return nil, fmt.Errorf("invalid mailer port: %w", err)
+	}
+
+	dialer := gomail.NewDialer(cfg.Mailer.Host, mailerPort, cfg.Mailer.Email, cfg.Mailer.Password)
+
+	cfg.Mailer.Dialer = dialer
 
 	return &cfg, nil
 }

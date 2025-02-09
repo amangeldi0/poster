@@ -20,7 +20,7 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) (re
 	ct := r.Header.Get("Content-Type")
 	if ct != "" {
 		mediaType := strings.ToLower(strings.TrimSpace(strings.Split(ct, ";")[0]))
-		if mediaType != "application/helpers" {
+		if mediaType != "application/json" {
 
 			return response.ErrorResp{
 				Message:    "content-Type header is not application/helpers",
