@@ -8,7 +8,8 @@ CREATE TABLE users (
     verify_code text null ,
     password_hash TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+    updated_at TIMESTAMP DEFAULT NOW(),
+    refresh_token text null
 );
 
 CREATE TABLE likes (

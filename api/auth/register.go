@@ -1,4 +1,4 @@
-package users
+package auth
 
 import (
 	"context"
@@ -162,5 +162,5 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("User registered successfully", slog.String("op", op), slog.String("email", req.Email))
 
-	json.WriteJSON(w, http.StatusOK, response.Ok("", "User is registered, please verify your email"))
+	json.WriteJSON(w, http.StatusOK, response.Ok("User is registered, please verify your email"))
 }

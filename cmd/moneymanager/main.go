@@ -7,7 +7,7 @@ import (
 	slogchi "github.com/samber/slog-chi"
 	"gopkg.in/gomail.v2"
 	"log/slog"
-	"money-manager/api/users"
+	"money-manager/api/auth"
 	"money-manager/internal/config"
 	"money-manager/internal/database"
 	"money-manager/internal/lib/logger/prettylogger"
@@ -65,9 +65,9 @@ func main() {
 
 	mailer := sender.NewSender(cfg.Mailer.Email, cfg.Mailer.Dialer)
 
-	usersHandlers := users.NewUserHandler(logger, queries, mailer)
+	usersHandlers := auth.NewAuthHandler(logger, queries, mailer)
 
-	users.RegisterRoutes(router, usersHandlers)
+	auth.RegisterRoutes(router, usersHandlers)
 
 	logger.Info("✅ Server started", slog.String("address", cfg.HTTPServer.Address))
 

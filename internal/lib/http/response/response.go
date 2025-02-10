@@ -8,8 +8,8 @@ import (
 
 type StatusType string
 
-const StatusOK = StatusType("OK")
-const StatusError = StatusType("Error")
+const StatusOK = StatusType("ok")
+const StatusError = StatusType("error")
 
 type invalidField struct {
 	Field string `helpers:"field"`
@@ -17,20 +17,28 @@ type invalidField struct {
 }
 
 type OKResp struct {
-	Status     StatusType  `helpers:"status"`
-	Message    string      `helpers:"message,omitempty"`
-	Data       interface{} `helpers:"data,omitempty"`
-	StatusCode int         `helpers:"status_code"`
+	Status     StatusType  `json:"status"`
+	Message    string      `json:"message,omitempty"`
+	Data       interface{} `json:"data,omitempty"`
+	StatusCode int         `json:"status_code"`
 }
 
 type ErrorResp struct {
-	Status     StatusType  `helpers:"status,default=error"`
-	StatusCode int         `helpers:"status_code"`
-	Message    string      `helpers:"message"`
-	Details    interface{} `helpers:"details,omitempty"`
+	Status     StatusType  `json:"status,default=error"`
+	StatusCode int         `json:"status_code"`
+	Message    string      `json:"message"`
+	Details    interface{} `json:"details,omitempty"`
 }
 
-func Ok(data interface{}, msg string) OKResp {
+func Ok(msg string) OKResp {
+	return OKResp{
+		StatusCode: http.StatusOK,
+		Message:    msg,
+		Status:     StatusOK,
+	}
+}
+
+func OkWData(data interface{}, msg string) OKResp {
 	return OKResp{
 		StatusCode: http.StatusOK,
 		Message:    msg,

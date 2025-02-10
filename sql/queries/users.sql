@@ -9,8 +9,14 @@ INSERT INTO users (
 -- name: GetUserByEmail :one
 SELECT * FROM users WHERE email = $1;
 
+-- name: GetUserByUUID :one
+SELECT * FROM users WHERE id = $1;
+
 -- name: GetUserVerifyStatus :one
 SELECT is_verified FROM users WHERE email = $1;
+
+-- name: UpdateUserRefreshToken :exec
+UPDATE users SET refresh_token = $1 WHERE id = $2;
 
 -- name: DeleteUserByEmail :exec
 DELETE FROM users WHERE email = $1;
