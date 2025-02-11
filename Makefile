@@ -4,3 +4,5 @@ m-up:
 	goose -env=./config/.env up
 m-down:
 	goose -env=./config/.env down
+run:
+	go run cmd/poster/main.go
