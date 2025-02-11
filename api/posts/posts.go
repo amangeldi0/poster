@@ -77,7 +77,13 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 	const op = "posts.GetPosts"
 
-	posts, err := h.query.GetPosts(r.Context())
+	userId := uuid.NullUUID{Valid: false}
+
+	if possibleId, _, err := authmiddleware.Identify(r.Context(), w, h.logger, op); err == nil {
+		userId = uuid.NullUUID{UUID: possibleId, Valid: true}
+	}
+
+	posts, err := h.query.GetPostsWithLikes(r.Context(), userId.UUID)
 
 	if err != nil {
 		errD := sqlhelpers.GetDBError(err, label)
