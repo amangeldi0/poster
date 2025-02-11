@@ -45,7 +45,7 @@ func GenerateAccessToken(userID string) (string, error) {
 	claims := JWTClaims{
 		UserID: userID,
 		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(1 * time.Minute)), // Токен живет 15 минут
+			ExpiresAt: jwt.NewNumericDate(time.Now().Add(15 * time.Minute)), // Токен живет 15 минут
 			IssuedAt:  jwt.NewNumericDate(time.Now()),
 		},
 	}
