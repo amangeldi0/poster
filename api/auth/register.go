@@ -147,8 +147,8 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		ID:           uuid.New(),
 		Username:     req.Username,
 		Email:        req.Email,
-		CreatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
-		UpdatedAt:    sql.NullTime{Time: time.Now(), Valid: true},
+		CreatedAt:    time.Now(),
+		UpdatedAt:    time.Now(),
 		PasswordHash: password,
 		VerifyCode:   sql.NullString{String: code, Valid: true},
 	})
@@ -162,5 +162,5 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	h.logger.Info("User registered successfully", slog.String("op", op), slog.String("email", req.Email))
 
-	json.WriteJSON(w, http.StatusOK, response.Ok("User is registered, please verify your email"))
+	json.WriteJSON(w, http.StatusOK, response.OkWMsg("User is registered, please verify your email"))
 }

@@ -7,36 +7,44 @@ CREATE TABLE users (
     is_verified boolean default false,
     verify_code text null ,
     password_hash TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW(),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL,
     refresh_token text null
+);
+
+CREATE TABLE posts (
+    id UUID PRIMARY KEY,
+    author_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    title VARCHAR(100) NOT NULL,
+    content TEXT NOT NULL,
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
 );
 
 CREATE TABLE likes (
     id SERIAL PRIMARY KEY,
-    user_id UUID NOT NULL,
-    entity_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    entity_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     entity_type TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT now(),
+    created_at TIMESTAMP NOT NULL,
     CONSTRAINT unique_like UNIQUE (user_id, entity_id, entity_type)
 );
-
 CREATE TABLE comments (
-    id UUID PRIMARY KEY ,
-    entity_id UUID NOT NULL,
+    id UUID PRIMARY KEY,
+    entity_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     entity_type TEXT NOT NULL,
-    user_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT now(),
+    created_at TIMESTAMP DEFAULT NOW(),
     updated_at TIMESTAMP NULL,
     deleted_at TIMESTAMP NULL
 );
 
-CREATE TABLE posts (
-    id uuid primary key,
-    author_id uuid not null,
-    title VARCHAR(100) NOT NULL,
-    content text,
-    created_at TIMESTAMP DEFAULT NOW(),
-    update_at TIMESTAMP DEFAULT NOW()
-);
+
+-- +goose Down
+
+DROP TABLE users;
+DROP TABLE posts;
+DROP TABLE comments;
+DROP TABLE likes;
+

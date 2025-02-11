@@ -30,7 +30,7 @@ type ErrorResp struct {
 	Details    interface{} `json:"details,omitempty"`
 }
 
-func Ok(msg string) OKResp {
+func OkWMsg(msg string) OKResp {
 	return OKResp{
 		StatusCode: http.StatusOK,
 		Message:    msg,
@@ -38,10 +38,18 @@ func Ok(msg string) OKResp {
 	}
 }
 
-func OkWData(data interface{}, msg string) OKResp {
+func OkWDataAMsg(data interface{}, msg string) OKResp {
 	return OKResp{
 		StatusCode: http.StatusOK,
 		Message:    msg,
+		Data:       data,
+		Status:     StatusOK,
+	}
+}
+
+func OkWData(data interface{}) OKResp {
+	return OKResp{
+		StatusCode: http.StatusOK,
 		Data:       data,
 		Status:     StatusOK,
 	}

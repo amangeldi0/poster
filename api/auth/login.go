@@ -101,8 +101,8 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		Value: accessToken,
 		Path:  "/",
 		// TODO Поменять потом на https
-		HttpOnly: true,  // 🔐 JS не сможет прочитать
-		Secure:   false, // 🔒 Только HTTPS
+		HttpOnly: true,
+		Secure:   false,
 		SameSite: http.SameSiteStrictMode,
 		Expires:  time.Now().Add(15 * time.Minute),
 	})

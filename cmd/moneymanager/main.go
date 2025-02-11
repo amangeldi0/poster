@@ -8,6 +8,7 @@ import (
 	"gopkg.in/gomail.v2"
 	"log/slog"
 	"money-manager/api/auth"
+	"money-manager/api/posts"
 	"money-manager/internal/config"
 	"money-manager/internal/database"
 	"money-manager/internal/lib/logger/prettylogger"
@@ -18,9 +19,10 @@ import (
 )
 
 func main() {
-	cfg, err := config.New()
 
-	router := chi.NewRouter()
+	// Configuring
+
+	cfg, err := config.New()
 
 	if err != nil {
 		slog.Error("Error loading config", slog.Any("error", err))
@@ -30,7 +32,7 @@ func main() {
 	logger := setupLogger(cfg.Env)
 	logger.Info("Starting money manager")
 
-	router.Use(slogchi.New(logger))
+	// Connecting to Database
 
 	db, err := sql.Open("postgres", cfg.Database.Address)
 
@@ -40,14 +42,7 @@ func main() {
 
 	queries := database.New(db)
 
-	srv := &http.Server{
-		Addr:         cfg.HTTPServer.Address,
-		Handler:      router,
-		ReadTimeout:  cfg.HTTPServer.Timeout,
-		WriteTimeout: cfg.HTTPServer.Timeout,
-		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
-	}
-
+	// Mailer
 	dialer, err := cfg.Mailer.Dialer.Dial()
 
 	if err != nil {
@@ -65,11 +60,28 @@ func main() {
 
 	mailer := sender.NewSender(cfg.Mailer.Email, cfg.Mailer.Dialer)
 
-	usersHandlers := auth.NewAuthHandler(logger, queries, mailer)
+	// Routes
 
+	router := chi.NewRouter()
+	router.Use(slogchi.New(logger))
+
+	usersHandlers := auth.NewAuthHandler(logger, queries, mailer)
 	auth.RegisterRoutes(router, usersHandlers)
 
+	postsHandlers := posts.NewPostsHandler(logger, queries)
+	posts.RegisterRoutes(router, postsHandlers)
+
+	// Serving
+
 	logger.Info("✅ Server started", slog.String("address", cfg.HTTPServer.Address))
+
+	srv := &http.Server{
+		Addr:         cfg.HTTPServer.Address,
+		Handler:      router,
+		ReadTimeout:  cfg.HTTPServer.Timeout,
+		WriteTimeout: cfg.HTTPServer.Timeout,
+		IdleTimeout:  cfg.HTTPServer.IdleTimeout,
+	}
 
 	if err = srv.ListenAndServe(); err != nil {
 		logger.Error("failed to start server", sl.Err(err))

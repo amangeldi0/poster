@@ -3,7 +3,6 @@ package authmiddleware
 import (
 	"context"
 	"errors"
-	"fmt"
 	"money-manager/internal/auth"
 	"money-manager/internal/lib/http/json"
 	"money-manager/internal/lib/http/response"
@@ -30,8 +29,6 @@ func JWTAuth(next http.Handler) http.Handler {
 			}
 			tokenString = cookie.Value
 		}
-
-		fmt.Println("Token:", tokenString)
 
 		claims, err := auth.VerifyToken(tokenString)
 		if err != nil {

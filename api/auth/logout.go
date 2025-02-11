@@ -59,5 +59,5 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 
-	json.WriteJSON(w, http.StatusOK, response.Ok("Successfully logged out"))
+	json.WriteJSON(w, http.StatusOK, response.OkWMsg("Successfully logged out"))
 }
