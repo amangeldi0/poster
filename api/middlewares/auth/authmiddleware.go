@@ -3,9 +3,12 @@ package authmiddleware
 import (
 	"context"
 	"errors"
+	"github.com/google/uuid"
+	"log/slog"
 	"money-manager/internal/auth"
 	"money-manager/internal/lib/http/json"
 	"money-manager/internal/lib/http/response"
+	"money-manager/internal/lib/logger/sl"
 	"net/http"
 	"strings"
 )
@@ -43,4 +46,24 @@ func JWTAuth(next http.Handler) http.Handler {
 		ctx := context.WithValue(r.Context(), UserIDKey, claims.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
+}
+
+func Identify(r context.Context, w http.ResponseWriter, h *slog.Logger, op string) (uuid.UUID, response.ErrorResp, error) {
+	mId, ok := r.Value(UserIDKey).(string)
+	if !ok || mId == "" {
+		h.Warn(op, "UserID is missing or not a string")
+		auth.DeleteCookie("access_token", w)
+		auth.DeleteCookie("refresh_token", w)
+		return uuid.Nil, response.Unauthorized("invalid account jwt"), errors.New("missing or invalid user ID")
+	}
+
+	userId, err := uuid.Parse(mId)
+	if err != nil {
+		h.Warn(op, "failed to parse id as a valid uuid from context", sl.Err(err))
+		auth.DeleteCookie("access_token", w)
+		auth.DeleteCookie("refresh_token", w)
+		return uuid.Nil, response.Unauthorized("invalid account jwt"), err
+	}
+
+	return userId, response.ErrorResp{}, nil
 }

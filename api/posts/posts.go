@@ -7,7 +7,6 @@ import (
 	"github.com/google/uuid"
 	"log/slog"
 	authmiddleware "money-manager/api/middlewares/auth"
-	"money-manager/internal/auth"
 	"money-manager/internal/database"
 	"money-manager/internal/lib/http/json"
 	"money-manager/internal/lib/http/response"
@@ -108,15 +107,10 @@ func (h *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userId := r.Context().Value(authmiddleware.UserIDKey).(string)
+	authorId, errD, err := authmiddleware.Identify(r.Context(), w, h.logger, op)
 
-	authorId, err := uuid.Parse(userId)
-
-	if err != nil || userId == "" {
-		h.logger.Warn(op, "failed to parse id as a valid uuid from context", sl.Err(err))
-		json.WriteJSON(w, http.StatusUnauthorized, response.Unauthorized("invalid account jwt"))
-		auth.DeleteCookie("access_token", w)
-		auth.DeleteCookie("refresh_token", w)
+	if err != nil {
+		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
@@ -152,15 +146,10 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	var req postRequest
 
-	userId := r.Context().Value(authmiddleware.UserIDKey).(string)
+	authorId, errD, err := authmiddleware.Identify(r.Context(), w, h.logger, op)
 
-	authorId, err := uuid.Parse(userId)
-
-	if err != nil || userId == "" {
-		h.logger.Warn(op, "failed to parse id as a valid uuid from context", sl.Err(err))
-		json.WriteJSON(w, http.StatusUnauthorized, response.Unauthorized("invalid account jwt"))
-		auth.DeleteCookie("access_token", w)
-		auth.DeleteCookie("refresh_token", w)
+	if err != nil {
+		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
@@ -217,15 +206,10 @@ func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	var req postRequest
 
-	middlewareId := r.Context().Value(authmiddleware.UserIDKey).(string)
+	authorId, errD, err := authmiddleware.Identify(r.Context(), w, h.logger, op)
 
-	authorId, err := uuid.Parse(middlewareId)
-
-	if err != nil || middlewareId == "" {
-		h.logger.Warn(op, "failed to parse id as a valid uuid from context", sl.Err(err))
-		auth.DeleteCookie("access_token", w)
-		auth.DeleteCookie("refresh_token", w)
-		json.WriteJSON(w, http.StatusUnauthorized, response.Unauthorized("invalid account jwt"))
+	if err != nil {
+		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
