@@ -63,7 +63,7 @@ func NotFound(msg string) ErrorResp {
 	return ErrorResp{
 		StatusCode: http.StatusNotFound,
 		Message:    msg,
-		Status:     StatusOK,
+		Status:     StatusError,
 	}
 }
 
