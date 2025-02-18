@@ -21,15 +21,6 @@ CREATE TABLE posts (
     updated_at TIMESTAMP NOT NULL
 );
 
-CREATE TABLE likes (
-    id UUID PRIMARY KEY,
-    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
-    entity_id UUID NOT NULL,
-    entity_type TEXT NOT NULL CHECK (entity_type IN ('post', 'comment')),
-    created_at TIMESTAMP NOT NULL,
-    CONSTRAINT unique_like UNIQUE (user_id, entity_id, entity_type)
-);
-
 CREATE TABLE comments (
     id UUID PRIMARY KEY,
     post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
@@ -40,11 +31,28 @@ CREATE TABLE comments (
     updated_at TIMESTAMP NOT NULL
 );
 
+CREATE TABLE post_likes (
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL,
+    CONSTRAINT unique_post_like UNIQUE (user_id, post_id)
+);
+
+CREATE TABLE comment_likes (
+    id UUID PRIMARY KEY NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    comment_id UUID NOT NULL REFERENCES comments(id) ON DELETE CASCADE,
+    created_at TIMESTAMP NOT NULL DEFAULT now(),
+    CONSTRAINT unique_comment_like UNIQUE (user_id, comment_id)
+);
+
+
 
 -- +goose Down
-
+DROP TABLE post_likes;
+DROP TABLE comment_likes;
 DROP TABLE comments;
-DROP TABLE likes;
 DROP TABLE posts;
 DROP TABLE users;
 
