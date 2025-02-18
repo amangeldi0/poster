@@ -1,3 +1,6 @@
+.PHONY: default
+default: run;
+
 generate:
 	sqlc -f ./config/sqlc.yaml generate
 m-up:
