@@ -32,14 +32,12 @@ CREATE TABLE likes (
 
 CREATE TABLE comments (
     id UUID PRIMARY KEY,
-    entity_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
-    entity_type TEXT NOT NULL,
-    is_edited boolean default false,
+    post_id UUID NOT NULL REFERENCES posts(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    is_edited BOOLEAN NOT NULL DEFAULT FALSE,
     content TEXT NOT NULL,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP NULL,
-    deleted_at TIMESTAMP NULL
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP NOT NULL
 );
 
 
