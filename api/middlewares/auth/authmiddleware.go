@@ -5,11 +5,11 @@ import (
 	"errors"
 	"github.com/google/uuid"
 	"log/slog"
-	"money-manager/internal/auth"
-	"money-manager/internal/lib/http/json"
-	"money-manager/internal/lib/http/response"
-	"money-manager/internal/lib/logger/sl"
 	"net/http"
+	"poster/internal/auth"
+	"poster/internal/lib/http/json"
+	"poster/internal/lib/http/response"
+	"poster/internal/lib/logger/sl"
 	"strings"
 )
 

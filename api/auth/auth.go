@@ -4,9 +4,9 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"log/slog"
-	authmiddleware "money-manager/api/middlewares/auth"
-	"money-manager/internal/database"
-	"money-manager/internal/lib/mail/sender"
+	authmiddleware "poster/api/middlewares/auth"
+	"poster/internal/database"
+	"poster/internal/lib/mail/sender"
 )
 
 const label = "user"

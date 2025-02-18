@@ -5,8 +5,8 @@ import (
 	"errors"
 	"fmt"
 	"github.com/lib/pq"
-	"money-manager/internal/lib/http/response"
 	"net/http"
+	"poster/internal/lib/http/response"
 	"regexp"
 )
 

@@ -4,11 +4,11 @@ import (
 	"database/sql"
 	"github.com/google/uuid"
 	"log/slog"
-	"money-manager/internal/database"
-	"money-manager/internal/lib/http/json"
-	"money-manager/internal/lib/http/response"
-	"money-manager/internal/lib/logger/sl"
 	"net/http"
+	"poster/internal/database"
+	"poster/internal/lib/http/json"
+	"poster/internal/lib/http/response"
+	"poster/internal/lib/logger/sl"
 )
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {

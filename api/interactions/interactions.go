@@ -4,8 +4,8 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator/v10"
 	"log/slog"
-	authmiddleware "money-manager/api/middlewares/auth"
-	"money-manager/internal/database"
+	authmiddleware "poster/api/middlewares/auth"
+	"poster/internal/database"
 )
 
 type Handler struct {
