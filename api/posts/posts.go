@@ -32,12 +32,12 @@ type postRequest struct {
 func RegisterRoutes(r chi.Router, handler *Handler) {
 	r.Route("/post", func(r chi.Router) {
 		r.Get("/{id}", handler.GetPost)
-		r.With(authmiddleware.JWTAuth).Post("/", handler.CreatePost)
-		r.With(authmiddleware.JWTAuth).Delete("/{id}", handler.DeletePost)
-		r.With(authmiddleware.JWTAuth).Put("/{id}", handler.UpdatePost)
+		r.With(authmiddleware.JWTAuthRequired).Post("/", handler.CreatePost)
+		r.With(authmiddleware.JWTAuthRequired).Delete("/{id}", handler.DeletePost)
+		r.With(authmiddleware.JWTAuthRequired).Put("/{id}", handler.UpdatePost)
 	})
 
-	r.Get("/posts", handler.GetPosts)
+	r.With(authmiddleware.JWTAuthNotRequired).Get("/posts", handler.GetPosts)
 }
 
 func NewPostsHandler(log *slog.Logger, db *database.Queries) *Handler {
@@ -79,7 +79,7 @@ func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
 
 	userId := uuid.NullUUID{Valid: false}
 
-	if possibleId, _, err := authmiddleware.Identify(r.Context(), w, h.logger, op); err == nil {
+	if possibleId, _, err := authmiddleware.Identify(r, w, h.logger, op); err == nil {
 		userId = uuid.NullUUID{UUID: possibleId, Valid: true}
 	}
 
@@ -113,7 +113,7 @@ func (h *Handler) DeletePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authorId, errD, err := authmiddleware.Identify(r.Context(), w, h.logger, op)
+	authorId, errD, err := authmiddleware.Identify(r, w, h.logger, op)
 
 	if err != nil {
 		json.WriteJSON(w, errD.StatusCode, errD)
@@ -152,7 +152,7 @@ func (h *Handler) CreatePost(w http.ResponseWriter, r *http.Request) {
 
 	var req postRequest
 
-	authorId, errD, err := authmiddleware.Identify(r.Context(), w, h.logger, op)
+	authorId, errD, err := authmiddleware.Identify(r, w, h.logger, op)
 
 	if err != nil {
 		json.WriteJSON(w, errD.StatusCode, errD)
@@ -212,7 +212,7 @@ func (h *Handler) UpdatePost(w http.ResponseWriter, r *http.Request) {
 
 	var req postRequest
 
-	authorId, errD, err := authmiddleware.Identify(r.Context(), w, h.logger, op)
+	authorId, errD, err := authmiddleware.Identify(r, w, h.logger, op)
 
 	if err != nil {
 		json.WriteJSON(w, errD.StatusCode, errD)
