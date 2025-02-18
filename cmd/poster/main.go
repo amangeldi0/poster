@@ -8,6 +8,7 @@ import (
 	"gopkg.in/gomail.v2"
 	"log/slog"
 	"money-manager/api/auth"
+	"money-manager/api/interactions"
 	"money-manager/api/posts"
 	"money-manager/internal/config"
 	"money-manager/internal/database"
@@ -70,6 +71,9 @@ func main() {
 
 	postsHandlers := posts.NewPostsHandler(logger, queries)
 	posts.RegisterRoutes(router, postsHandlers)
+
+	interactionsHandlers := interactions.NewInteractionsHandlers(logger, queries)
+	interactions.RegisterRoutes(router, interactionsHandlers)
 
 	// Serving
 
