@@ -31,7 +31,7 @@ type postRequest struct {
 
 func RegisterRoutes(r chi.Router, handler *Handler) {
 	r.Route("/post", func(r chi.Router) {
-		r.Get("/{id}", handler.GetPost)
+		r.With(authmiddleware.JWTAuthNotRequired).Get("/{id}", handler.GetPost)
 		r.With(authmiddleware.JWTAuthRequired).Post("/", handler.CreatePost)
 		r.With(authmiddleware.JWTAuthRequired).Delete("/{id}", handler.DeletePost)
 		r.With(authmiddleware.JWTAuthRequired).Put("/{id}", handler.UpdatePost)
@@ -71,7 +71,35 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	json.WriteJSON(w, http.StatusOK, response.OkWData(post))
+	userId := uuid.NullUUID{Valid: false}
+
+	if possibleId, _, err := authmiddleware.Identify(r, w, h.logger, op); err == nil {
+		userId = uuid.NullUUID{UUID: possibleId, Valid: true}
+	}
+
+	h.logger.Debug("user id", userId.UUID)
+
+	commentsForPost, err := h.query.GetCommentsForPost(r.Context(), database.GetCommentsForPostParams{
+		PostID: post.ID,
+		UserID: userId.UUID,
+	})
+
+	if err != nil {
+		errD := sqlhelpers.GetDBError(err, "post comments")
+		h.logger.Warn(op, "failed to get post comments", sl.Err(err))
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	res := struct {
+		database.GetPostRow
+		Comments []database.GetCommentsForPostRow `json:"comments"`
+	}{
+		GetPostRow: post,
+		Comments:   commentsForPost,
+	}
+
+	json.WriteJSON(w, http.StatusOK, response.OkWData(res))
 }
 
 func (h *Handler) GetPosts(w http.ResponseWriter, r *http.Request) {
