@@ -23,7 +23,7 @@ func RegisterRoutes(r chi.Router, handler *Handler) {
 		r.Post("/register", handler.Register)
 		r.Post("/login", handler.Login)
 		r.Post("/refresh-token", handler.RefreshToken)
-		r.With(authmiddleware.JWTAuth).Get("/logout", handler.Logout)
+		r.With(authmiddleware.JWTAuthRequired).Get("/logout", handler.Logout)
 	})
 }
 
