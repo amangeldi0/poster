@@ -22,21 +22,26 @@ SELECT
     COALESCE(l.like_count, 0) AS like_count,
     COALESCE(lb.liked_by_user, false) AS liked_by_user
 FROM comments c
-LEFT JOIN (
-SELECT
-    comment_id,
-    COUNT(*) AS like_count
-FROM comment_likes
-GROUP BY comment_id
+         LEFT JOIN (
+    SELECT
+        comment_id,
+        COUNT(*) AS like_count
+    FROM comment_likes
+    GROUP BY comment_id
 ) l ON c.id = l.comment_id
 
-LEFT JOIN (
-SELECT
-    comment_id,
-    true AS liked_by_user
-FROM comment_likes
-WHERE c.user_id = $1
+         LEFT JOIN (
+    SELECT
+        comment_id,
+        true AS liked_by_user
+    FROM comment_likes cl
+    WHERE cl.user_id = $1
 ) lb ON c.id = lb.comment_id
 
 WHERE c.post_id = $2
 ORDER BY c.created_at DESC;
+
+
+
+-- name: GetComment :one
+SELECT * FROM comments WHERE id = $1;
