@@ -71,14 +71,14 @@ func (h *Handler) Comment(w http.ResponseWriter, r *http.Request) {
 
 	if err != nil {
 		h.logger.Warn("Failed to create comment", slog.String("op", op), sl.Err(err))
-		errD = sqlhelpers.GetDBError(err, "comment")
+		errD = sqlhelpers.GetDBError(err, "post")
 		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
 	if comment.ID == uuid.Nil {
 		h.logger.Warn("Attempt to comment on non-existent post", slog.String("op", op))
-		json.WriteJSON(w, http.StatusNotFound, response.NotFound("Post does not exist"))
+		json.WriteJSON(w, http.StatusNotFound, response.NotFound("post does not exist"))
 		return
 	}
 
