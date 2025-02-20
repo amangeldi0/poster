@@ -11,6 +11,16 @@ import (
 	"poster/internal/database"
 )
 
+const commentLabel = "comment"
+const postLabel = "post"
+
+var (
+	errCommentNotFound           = errors.New("comment not found")
+	errPostNotFound              = errors.New("post not found")
+	errPostAttachmentNotFound    = errors.New("post attachment not found")
+	errCommentAttachmentNotFound = errors.New("comment attachment not found")
+)
+
 type Handler struct {
 	logger   *slog.Logger
 	query    *database.Queries
