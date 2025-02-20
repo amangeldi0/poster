@@ -91,6 +91,10 @@ func (h *Handler) GetPost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if len(commentsForPost) == 0 {
+		commentsForPost = []database.GetCommentsForPostRow{}
+	}
+
 	res := struct {
 		database.GetPostRow
 		Comments []database.GetCommentsForPostRow `json:"comments"`
