@@ -2,6 +2,12 @@
 INSERT INTO comments (id, post_id, user_id, is_edited, content, created_at, updated_at)
 SELECT $1, $2, $3, $4, $5, $6, $7 WHERE EXISTS(SELECT 1 FROM posts WHERE posts.id = $2) RETURNING *;
 
+-- name: UpdateComment :one
+UPDATE comments
+SET content = $4, is_edited = true, updated_at = now()
+WHERE id = $1 AND user_id = $2 AND post_id = $3
+RETURNING *;
+
 -- name: DeleteComment :execrows
 DELETE FROM comments WHERE id = $1 AND post_id = $2 AND user_id = $3;
 
