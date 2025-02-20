@@ -19,9 +19,19 @@ type Handler struct {
 
 func RegisterRoutes(r chi.Router, handler *Handler) {
 	r.Route("/interactions", func(r chi.Router) {
-		r.With(authmiddleware.JWTAuthRequired).Post("/like", handler.LikeEntity)
-		r.With(authmiddleware.JWTAuthRequired).Post("/unlike", handler.UnlikeEntity)
-		r.With(authmiddleware.JWTAuthRequired).Post("/comment", handler.Comment)
+		r.Route("/post", func(r chi.Router) {
+			r.With(authmiddleware.JWTAuthRequired).Post("/like/{id}", handler.LikePost)
+			r.With(authmiddleware.JWTAuthRequired).Post("/unlike/{id}", handler.UnlikePost)
+		})
+
+		r.Route("/comment", func(r chi.Router) {
+			r.With(authmiddleware.JWTAuthRequired).Post("/", handler.Comment)
+			r.With(authmiddleware.JWTAuthRequired).Put("/{id}", handler.UpdateComment)
+			r.With(authmiddleware.JWTAuthRequired).Delete("/{id}", handler.DeleteComment)
+
+			r.With(authmiddleware.JWTAuthRequired).Post("/like/{id}", handler.LikeComment)
+			r.With(authmiddleware.JWTAuthRequired).Post("/unlike/{id}", handler.UnlikeComment)
+		})
 	})
 
 }
