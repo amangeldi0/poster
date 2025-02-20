@@ -2,8 +2,7 @@ package interactions
 
 import (
 	"errors"
-	"fmt"
-	"github.com/go-playground/validator/v10"
+	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 	"log/slog"
 	"net/http"
@@ -16,42 +15,31 @@ import (
 	"time"
 )
 
-const likeLabel = "like"
+func (h *Handler) isValidUUIDParam(r *http.Request) (uuid.UUID, error) {
+	paramID := chi.URLParam(r, "id")
+	invalidID := errors.New("invalid id")
 
-type likePostRequest struct {
-	EntityID   string `json:"entity_id" validate:"required,uuid"`
-	EntityType string `json:"entity_type" validate:"required,oneof=post comment"`
-}
-
-func (h *Handler) LikeEntity(w http.ResponseWriter, r *http.Request) {
-	const op = "interactions.LikeEntity"
-
-	var req likePostRequest
-
-	if details, err := json.DecodeJSONBody(w, r, &req); err != nil {
-		h.logger.Warn("Invalid JSON body", slog.String("op", op), sl.Err(err))
-		json.WriteJSON(w, details.StatusCode, details)
-		return
+	if paramID == "" {
+		return uuid.Nil, invalidID
 	}
 
-	if err := h.validate.Struct(req); err != nil {
-		var validationErrors validator.ValidationErrors
-		if errors.As(err, &validationErrors) {
-			h.logger.Warn("Validation failed", slog.String("op", op), sl.Err(err))
-			json.WriteJSON(w, http.StatusBadRequest, response.InvalidInput(validationErrors))
-			return
-		}
-
-		h.logger.Warn("Invalid input data", slog.String("op", op), sl.Err(err))
-		response.BadRequest("invalid input data")
-		return
-	}
-
-	entityID, err := uuid.Parse(req.EntityID)
+	id, err := uuid.Parse(paramID)
 
 	if err != nil {
-		h.logger.Warn("Invalid entity id", slog.String("op", op), sl.Err(err))
-		errD := response.BadRequest("invalid entity id")
+		return uuid.Nil, invalidID
+	}
+
+	return id, nil
+}
+
+func (h *Handler) LikeComment(w http.ResponseWriter, r *http.Request) {
+	const op = "interactions.LikeComment"
+
+	commentID, err := h.isValidUUIDParam(r)
+
+	if err != nil {
+		h.logger.Warn("invalid comment id", slog.String("op", op), sl.Err(err))
+		errD := response.BadRequest(err.Error())
 		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
@@ -63,60 +51,45 @@ func (h *Handler) LikeEntity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	likedRows, err := h.query.LikeEntity(r.Context(), database.LikeEntityParams{
-		ID:         uuid.New(),
-		UserID:     currentUserId,
-		EntityID:   entityID,
-		EntityType: req.EntityType,
-		CreatedAt:  time.Now(),
+	if ok := h.isCommentExist(r.Context(), commentID); !ok {
+		h.logger.Warn("attempt to like non-existent comment", slog.String("op", op))
+		errD = response.NotFound(errCommentNotFound.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	likedRows, err := h.query.LikeComment(r.Context(), database.LikeCommentParams{
+		ID:        uuid.New(),
+		UserID:    currentUserId,
+		CommentID: commentID,
+		CreatedAt: time.Now(),
 	})
 
 	if err != nil {
-		h.logger.Warn("Like failed", slog.String("op", op), sl.Err(err))
-		errD = sqlhelpers.GetDBError(err, likeLabel)
+		h.logger.Warn("like failed", slog.String("op", op), sl.Err(err))
+		errD = sqlhelpers.GetDBError(err, commentLabel)
 		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
 	if likedRows == 0 {
-		h.logger.Warn("Attempt to like non-existent post/comment", slog.String("op", op))
-		errD = response.NotFound(fmt.Sprintf("%s does not exist", req.EntityType))
+		h.logger.Warn("attempt to like non-existent comment", slog.String("op", op))
+		errD = response.NotFound(errCommentAttachmentNotFound.Error())
 		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
-	json.WriteJSON(w, http.StatusOK, response.OkWMsg("Successfully liked"))
+	json.WriteJSON(w, http.StatusOK, response.OkWMsg("comment successfully liked"))
 }
 
-func (h *Handler) UnlikeEntity(w http.ResponseWriter, r *http.Request) {
-	const op = "interactions.UnlikePost"
+func (h *Handler) UnlikeComment(w http.ResponseWriter, r *http.Request) {
+	const op = "interactions.UnlikeComment"
 
-	var req likePostRequest
-
-	if details, err := json.DecodeJSONBody(w, r, &req); err != nil {
-		h.logger.Warn("Invalid JSON body", slog.String("op", op), sl.Err(err))
-		json.WriteJSON(w, details.StatusCode, details)
-		return
-	}
-
-	if err := h.validate.Struct(req); err != nil {
-		var validationErrors validator.ValidationErrors
-		if errors.As(err, &validationErrors) {
-			h.logger.Warn("Validation failed", slog.String("op", op), sl.Err(err))
-			json.WriteJSON(w, http.StatusBadRequest, response.InvalidInput(validationErrors))
-			return
-		}
-
-		h.logger.Warn("Invalid input data", slog.String("op", op), sl.Err(err))
-		response.BadRequest("invalid input data")
-		return
-	}
-
-	entityID, err := uuid.Parse(req.EntityID)
+	commentID, err := h.isValidUUIDParam(r)
 
 	if err != nil {
-		h.logger.Warn("Invalid entity id", slog.String("op", op), sl.Err(err))
-		errD := response.BadRequest("invalid entity id")
+		h.logger.Warn("invalid comment id", slog.String("op", op), sl.Err(err))
+		errD := response.BadRequest(err.Error())
 		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
@@ -128,24 +101,129 @@ func (h *Handler) UnlikeEntity(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	unlikedRows, err := h.query.UnlikeEntity(r.Context(), database.UnlikeEntityParams{
-		UserID:     currentUserId,
-		EntityID:   entityID,
-		EntityType: req.EntityType,
+	if ok := h.isCommentExist(r.Context(), commentID); !ok {
+		h.logger.Warn("attempt to like non-existent comment", slog.String("op", op))
+		errD = response.NotFound(errCommentNotFound.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	likedRows, err := h.query.UnlikeComment(r.Context(), database.UnlikeCommentParams{
+		UserID:    currentUserId,
+		CommentID: commentID,
 	})
 
 	if err != nil {
-		h.logger.Warn("Unlike failed", slog.String("op", op), sl.Err(err))
-		errD = sqlhelpers.GetDBError(err, likeLabel)
+		h.logger.Warn("unlike failed", slog.String("op", op), sl.Err(err))
+		errD = sqlhelpers.GetDBError(err, commentLabel)
 		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
-	if unlikedRows == 0 {
-		errD = response.NotFound(fmt.Sprintf("%s like does not exist", req.EntityType))
+	if likedRows == 0 {
+		h.logger.Warn("attempt to like non-existent comment", slog.String("op", op))
+		errD = response.NotFound(errCommentAttachmentNotFound.Error())
 		json.WriteJSON(w, errD.StatusCode, errD)
 		return
 	}
 
-	json.WriteJSON(w, http.StatusOK, response.OkWMsg("Successfully unliked"))
+	json.WriteJSON(w, http.StatusOK, response.OkWMsg("comment successfully unliked"))
+}
+
+func (h *Handler) LikePost(w http.ResponseWriter, r *http.Request) {
+	const op = "interactions.LikePost"
+
+	postID, err := h.isValidUUIDParam(r)
+
+	if err != nil {
+		h.logger.Warn("invalid comment id", slog.String("op", op), sl.Err(err))
+		errD := response.BadRequest(err.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	currentUserId, errD, err := authmiddleware.Identify(r, w, h.logger, op)
+
+	if err != nil {
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	if ok := h.isPostExist(r.Context(), postID); !ok {
+		h.logger.Warn("attempt to like non-existent post", slog.String("op", op))
+		errD = response.NotFound(errPostNotFound.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	likedRows, err := h.query.LikePost(r.Context(), database.LikePostParams{
+		ID:        uuid.New(),
+		UserID:    currentUserId,
+		PostID:    postID,
+		CreatedAt: time.Now(),
+	})
+
+	if err != nil {
+		h.logger.Warn("like failed", slog.String("op", op), sl.Err(err))
+		errD = sqlhelpers.GetDBError(err, postLabel)
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	if likedRows == 0 {
+		h.logger.Warn("attempt to like non-existent post", slog.String("op", op))
+		errD = response.NotFound(errPostAttachmentNotFound.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	json.WriteJSON(w, http.StatusOK, response.OkWMsg("post successfully liked"))
+}
+
+func (h *Handler) UnlikePost(w http.ResponseWriter, r *http.Request) {
+	const op = "interactions.UnlikePost"
+
+	postID, err := h.isValidUUIDParam(r)
+
+	if err != nil {
+		h.logger.Warn("invalid comment id", slog.String("op", op), sl.Err(err))
+		errD := response.BadRequest(err.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	currentUserId, errD, err := authmiddleware.Identify(r, w, h.logger, op)
+
+	if err != nil {
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	if ok := h.isPostExist(r.Context(), postID); !ok {
+		h.logger.Warn("attempt to like non-existent post", slog.String("op", op))
+		errD = response.NotFound(errPostNotFound.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	likedRows, err := h.query.UnlikePost(r.Context(), database.UnlikePostParams{
+		UserID: currentUserId,
+		PostID: postID,
+	})
+
+	if err != nil {
+		h.logger.Warn("unlike failed", slog.String("op", op), sl.Err(err))
+		errD = sqlhelpers.GetDBError(err, postLabel)
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	if likedRows == 0 {
+		h.logger.Warn("attempt to like non-existent post", slog.String("op", op))
+		errD = response.NotFound(errPostAttachmentNotFound.Error())
+		json.WriteJSON(w, errD.StatusCode, errD)
+		return
+	}
+
+	json.WriteJSON(w, http.StatusOK, response.OkWMsg("post successfully unliked"))
 }
