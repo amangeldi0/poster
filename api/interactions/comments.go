@@ -15,14 +15,14 @@ import (
 	"time"
 )
 
-type createCommentRequest struct {
+type commentRequest struct {
 	PostId  string `json:"post_id" validate:"required,uuid"`
 	Content string `json:"content" validate:"required"`
 }
 
 func (h *Handler) Comment(w http.ResponseWriter, r *http.Request) {
 	const op = "interactions.comments.Comment"
-	var req createCommentRequest
+	var req commentRequest
 
 	if details, err := json.DecodeJSONBody(w, r, &req); err != nil {
 		h.logger.Warn("Invalid JSON body", slog.String("op", op), sl.Err(err))
