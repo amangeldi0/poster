@@ -2,3 +2,6 @@
 
 ./config/.env
 ./config/local.yaml
+
+.idea
+./.idea
