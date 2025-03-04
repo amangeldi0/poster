@@ -23,10 +23,10 @@ func DecodeJSONBody(w http.ResponseWriter, r *http.Request, dst interface{}) (re
 		if mediaType != "application/json" {
 
 			return response.ErrorResp{
-				Message:    "content-Type header is not application/helpers",
+				Message:    "content-Type header is not application/json",
 				StatusCode: http.StatusUnsupportedMediaType,
 				Status:     response.StatusError,
-			}, errors.New("content-Type header is not application/helpers")
+			}, errors.New("content-Type header is not application/json")
 		}
 	}
 
