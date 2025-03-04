@@ -4,6 +4,7 @@ go 1.23.5
 
 require (
 	github.com/BurntSushi/toml v1.4.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/gabriel-vasile/mimetype v1.4.8 // indirect
 	github.com/go-chi/chi/v5 v5.2.1 // indirect
 	github.com/go-playground/locales v0.14.1 // indirect
@@ -15,7 +16,9 @@ require (
 	github.com/joho/godotenv v1.5.1 // indirect
 	github.com/leodido/go-urn v1.4.0 // indirect
 	github.com/lib/pq v1.10.9 // indirect
+	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/samber/slog-chi v1.13.1 // indirect
+	github.com/stretchr/testify v1.10.0 // indirect
 	go.opentelemetry.io/otel v1.29.0 // indirect
 	go.opentelemetry.io/otel/trace v1.29.0 // indirect
 	golang.org/x/crypto v0.32.0 // indirect
