@@ -11,6 +11,14 @@ type StatusType string
 const StatusOK = StatusType("ok")
 const StatusError = StatusType("error")
 
+const (
+	unauthorizedMsg = "You are not authenticated to perform the requested action."
+	forbiddenMsg    = "Your request is in a bad format."
+	serverMsg       = "Server error. Please try again later."
+	badRequestMsg   = "Your request is in a bad format."
+	notFoundMsg     = "Not found"
+)
+
 type invalidField struct {
 	Field string `helpers:"field"`
 	Error string `helpers:"error"`
@@ -57,7 +65,7 @@ func OkWData(data interface{}) OKResp {
 
 func NotFound(msg string) ErrorResp {
 	if msg == "" {
-		msg = "Not found"
+		msg = notFoundMsg
 	}
 
 	return ErrorResp{
@@ -69,7 +77,7 @@ func NotFound(msg string) ErrorResp {
 
 func BadRequest(msg string) ErrorResp {
 	if msg == "" {
-		msg = "Your request is in a bad format."
+		msg = badRequestMsg
 	}
 
 	return ErrorResp{
@@ -81,7 +89,7 @@ func BadRequest(msg string) ErrorResp {
 
 func InternalServerError(msg string) ErrorResp {
 	if msg == "" {
-		msg = "Server error. Please try again later."
+		msg = serverMsg
 	}
 
 	return ErrorResp{
@@ -93,7 +101,7 @@ func InternalServerError(msg string) ErrorResp {
 
 func Unauthorized(msg string) ErrorResp {
 	if msg == "" {
-		msg = "You are not authenticated to perform the requested action."
+		msg = unauthorizedMsg
 	}
 	return ErrorResp{
 		Status:     StatusError,
@@ -104,11 +112,11 @@ func Unauthorized(msg string) ErrorResp {
 
 func Forbidden(msg string) ErrorResp {
 	if msg == "" {
-		msg = "Your request is in a bad format."
+		msg = forbiddenMsg
 	}
 
 	return ErrorResp{
-		StatusCode: http.StatusBadRequest,
+		StatusCode: http.StatusForbidden,
 		Message:    msg,
 		Status:     StatusError,
 	}
