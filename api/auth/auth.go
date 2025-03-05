@@ -15,7 +15,7 @@ type Handler struct {
 	logger   *slog.Logger
 	query    *database.Queries
 	validate *validator.Validate
-	mailer   sender.Sender
+	mailer   *sender.Sender
 }
 
 func RegisterRoutes(r chi.Router, handler *Handler) {
@@ -27,7 +27,7 @@ func RegisterRoutes(r chi.Router, handler *Handler) {
 	})
 }
 
-func NewAuthHandler(log *slog.Logger, db *database.Queries, mailer sender.Sender) *Handler {
+func NewAuthHandler(log *slog.Logger, db *database.Queries, mailer *sender.Sender) *Handler {
 	return &Handler{
 		logger:   log,
 		query:    db,
