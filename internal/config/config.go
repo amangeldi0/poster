@@ -44,9 +44,6 @@ type Mailer struct {
 
 const PathKey = "CONFIG_PATH"
 
-const Local = "local"
-const Prod = "prod"
-
 func New() (*Config, error) {
 	configPath := os.Getenv(PathKey)
 
